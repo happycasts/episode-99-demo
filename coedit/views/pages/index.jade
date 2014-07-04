@@ -1,0 +1,38 @@
+doctype
+head
+  meta(charset="utf-8")
+  title #{title}
+  script(src="https://code.jquery.com/jquery-1.10.2.min.js")
+  script(src="/socket.io/socket.io.js")
+
+  // codemirror begin
+  link(rel='stylesheet', href='http://codemirror.net/lib/codemirror.css')
+  link(rel='stylesheet', href='http://codemirror.net/theme/ambiance.css')
+  script(src='http://codemirror.net/lib/codemirror.js')
+  script(src='http://codemirror.net/addon/mode/overlay.js')
+  script(src='http://codemirror.net/mode/markdown/markdown.js')
+  //  codemirror end
+
+body
+  textarea#textbox
+
+  script.
+    var editor = CodeMirror.fromTextArea(document.getElementById("textbox"), {
+      mode: 'markdown',
+      lineNumbers: true,
+      theme: "ambiance"
+    });
+  script.
+    var socket = io("localhost:3000"); 
+    socket.on('refresh', function(data){
+      editor.setValue(data.body);
+    });
+
+    editor.on('change', function(i, op){
+      console.log(op);
+      socket.emit('change', op);
+    });
+    
+    socket.on('change', function(data){
+      editor.replaceRange(data.text, data.from, data.to);
+    });
